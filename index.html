@@ -1,9 +1,8 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Mill City Weather Forecast</title>
+  <title>Mill City Weather 7‑Day Forecast</title>
   <style>
     @font-face {
       font-family: 'HelveticaNeue93BlackExt';
@@ -12,92 +11,49 @@
       font-weight: 900;
       font-style: normal;
     }
-
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: white;
-    }
-
-    #forecast {
-      display: flex;
-      flex-wrap: nowrap;
-      justify-content: space-between;
-      font-family: Arial, sans-serif;
-      background: linear-gradient(to right, #005c97, #363795);
-      padding: 10px;
-      color: white;
-      overflow-x: auto;
-      border-radius: 12px;
-      gap: 10px;
-    }
-
-    .day {
-      flex: 1;
-      min-width: 100px;
-      padding: 10px;
-      background: rgba(255,255,255,0.08);
-      border-radius: 10px;
-      text-align: center;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-    }
-
-    .day h3 {
-      margin: 0 0 5px;
-      font-size: 1rem;
-      font-weight: bold;
-      text-transform: uppercase;
-    }
-
-    .day img {
-      width: 50px;
-      height: 50px;
-      margin: 5px auto;
-    }
-
-    .temp {
-      font-family: 'HelveticaNeue93BlackExt', 'Helvetica Neue', Arial, sans-serif;
-      font-size: 1.6em;
-      font-weight: 900;
-      margin: 5px 0;
-    }
-
-    .desc {
-      font-size: 0.9em;
-      font-style: italic;
-    }
+    body { margin:0; font-family: Arial, sans-serif; background:white; }
+    #header { display:flex; justify-content:space-between; align-items:center; padding:10px; background:#f0f0f0; }
+    #header img { height:60px; }
+    #forecast { display:flex; justify-content:space-between; padding:10px; background:linear-gradient(to right, #005c97, #363795); }
+    .day { flex:1; margin:0 5px; background:rgba(255,255,255,0.1); border-radius:8px; text-align:center; padding:10px; }
+    .day h3 { margin:0; font-weight:bold; color:white; }
+    .day img { width:80px; height:80px; }
+    .temp { font-family:'HelveticaNeue93BlackExt',sans-serif; font-size:2em; margin:5px 0; color:white; }
+    .low { font-size:1.2em; color:#ddd; }
+    .desc { font-size:0.9em; color:#eee; margin-bottom:5px; }
+    #dateBar { text-align:right; padding:5px 10px; background:#222; color:white; font-family:'HelveticaNeue93BlackExt'; }
   </style>
 </head>
 <body>
-  <div id="forecast">Loading forecast...</div>
+  <div id="header">
+    <img src="MCW%20Long%20Trusted%202024.png" alt="Mill City Weather">
+    <h1 style="color:#222; font-family:'HelveticaNeue93BlackExt';">7 DAY FORECAST</h1>
+    <img src="New%20Era%20Landscaping%20&%20Masonry%20Logo%20(1)-1.png" alt="Sponsor" style="height:60px;">
+  </div>
+  <div id="forecast"></div>
+  <div id="dateBar"></div>
 
   <script>
     async function loadForecast() {
-      const pointRes = await fetch('https://api.weather.gov/points/42.659,-71.355');
-      const pointData = await pointRes.json();
-      const forecastUrl = pointData.properties.forecast;
-
-      const forecastRes = await fetch(forecastUrl);
-      const forecastData = await forecastRes.json();
-      const periods = forecastData.properties.periods.slice(0, 7);
-
+      const point = await fetch('https://api.weather.gov/points/42.659,-71.355').then(r=>r.json());
+      const days = await fetch(point.properties.forecast).then(r=>r.json());
+      const periods = days.properties.periods.slice(0,7);
       const container = document.getElementById('forecast');
       container.innerHTML = '';
       periods.forEach(p => {
-        const div = document.createElement('div');
-        div.className = 'day';
-        div.innerHTML = `
-          <h3>${p.name}</h3>
-          <img src="${p.icon}" alt="${p.shortForecast}">
-          <div class="temp">${p.temperature}°${p.temperatureUnit}</div>
-          <div class="desc">${p.shortForecast}</div>
-        `;
-        container.appendChild(div);
+        const icon = p.shortForecast.toLowerCase().includes('night') ? 'YOUR_NIGHT_ICON_MAPPING.png' : 'YOUR_DAY_ICON_MAPPING.png';
+        container.innerHTML += `
+          <div class="day">
+            <h3>${p.name}</h3>
+            <img src="${icon}" alt="${p.shortForecast}">
+            <div class="desc">${p.shortForecast}</div>
+            <div class="temp">${p.temperature}°${p.temperatureUnit}</div>
+          </div>`;
       });
+      document.getElementById('dateBar').textContent = new Date().toLocaleDateString('en-US');
     }
-
     loadForecast();
-    setInterval(loadForecast, 30 * 60 * 1000);
+    setInterval(loadForecast,1800000);
   </script>
 </body>
 </html>
