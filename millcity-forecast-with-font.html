@@ -1,0 +1,103 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Mill City Weather Forecast</title>
+  <style>
+    @font-face {
+      font-family: 'HelveticaNeue93BlackExt';
+      src: url('Helvetica%20Neue%20LT%20Std%2093%20Black%20Extended.woff2') format('woff2'),
+           url('Helvetica%20Neue%20LT%20Std%2093%20Black%20Extended.woff') format('woff');
+      font-weight: 900;
+      font-style: normal;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: white;
+    }
+
+    #forecast {
+      display: flex;
+      flex-wrap: nowrap;
+      justify-content: space-between;
+      font-family: Arial, sans-serif;
+      background: linear-gradient(to right, #005c97, #363795);
+      padding: 10px;
+      color: white;
+      overflow-x: auto;
+      border-radius: 12px;
+      gap: 10px;
+    }
+
+    .day {
+      flex: 1;
+      min-width: 100px;
+      padding: 10px;
+      background: rgba(255,255,255,0.08);
+      border-radius: 10px;
+      text-align: center;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+
+    .day h3 {
+      margin: 0 0 5px;
+      font-size: 1rem;
+      font-weight: bold;
+      text-transform: uppercase;
+    }
+
+    .day img {
+      width: 50px;
+      height: 50px;
+      margin: 5px auto;
+    }
+
+    .temp {
+      font-family: 'HelveticaNeue93BlackExt', 'Helvetica Neue', Arial, sans-serif;
+      font-size: 1.6em;
+      font-weight: 900;
+      margin: 5px 0;
+    }
+
+    .desc {
+      font-size: 0.9em;
+      font-style: italic;
+    }
+  </style>
+</head>
+<body>
+  <div id="forecast">Loading forecast...</div>
+
+  <script>
+    async function loadForecast() {
+      const pointRes = await fetch('https://api.weather.gov/points/42.659,-71.355');
+      const pointData = await pointRes.json();
+      const forecastUrl = pointData.properties.forecast;
+
+      const forecastRes = await fetch(forecastUrl);
+      const forecastData = await forecastRes.json();
+      const periods = forecastData.properties.periods.slice(0, 7);
+
+      const container = document.getElementById('forecast');
+      container.innerHTML = '';
+      periods.forEach(p => {
+        const div = document.createElement('div');
+        div.className = 'day';
+        div.innerHTML = `
+          <h3>${p.name}</h3>
+          <img src="${p.icon}" alt="${p.shortForecast}">
+          <div class="temp">${p.temperature}°${p.temperatureUnit}</div>
+          <div class="desc">${p.shortForecast}</div>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    loadForecast();
+    setInterval(loadForecast, 30 * 60 * 1000);
+  </script>
+</body>
+</html>
