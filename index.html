@@ -37,3 +37,105 @@
       background: rgba(255, 255, 255, 0.1);
       border-radius: 8px;
       text-align: center;
+      padding: 10px;
+    }
+    .day h3 {
+      margin: 0;
+      font-weight: bold;
+      color: white;
+    }
+    .day img {
+      width: 80px;
+      height: 80px;
+    }
+    .temp {
+      font-family: 'HelveticaNeue93BlackExt', sans-serif;
+      font-size: 2em;
+      margin: 5px 0;
+      color: white;
+    }
+    .desc {
+      font-size: 0.9em;
+      color: #eee;
+      margin-bottom: 5px;
+    }
+    #dateBar {
+      text-align: right;
+      padding: 5px 10px;
+      background: #222;
+      color: white;
+      font-family: 'HelveticaNeue93BlackExt', sans-serif;
+    }
+  </style>
+</head>
+<body>
+  <div id="header">
+    <img src="MCW Long Trusted 2024.png" alt="Mill City Weather">
+    <h1 style="color:#222; font-family:'HelveticaNeue93BlackExt';">7 DAY FORECAST</h1>
+    <img src="New Era Landscaping & Masonry Logo (1)-1.png" alt="Sponsor" style="height:60px;">
+  </div>
+  <div id="forecast"></div>
+  <div id="dateBar"></div>
+
+  <script>
+    const iconMap = {
+      "patchy fog": "fog.png",
+      "fog": "fog.png",
+      "rain showers": "rain_light.png",
+      "slight chance rain showers": "rain_light.png",
+      "chance rain showers": "rain_light.png",
+      "showers": "rain_light.png",
+      "thunderstorms": "thunderstorm.png",
+      "showers and thunderstorms": "thunderstorm.png",
+      "chance showers and thunderstorms": "thunderstorm.png",
+      "isolated thunderstorms": "thunderstorm.png",
+      "sunny": "sunny.png",
+      "mostly sunny": "mostly_sunny.png",
+      "partly sunny": "partly_sunny.png",
+      "clear": "clear.png",
+      "mostly clear": "mostly_clear.png",
+      "mostly cloudy": "mostly_cloudy.png",
+      "cloudy": "cloudy.png",
+      "partly cloudy": "partly_sunny.png",
+      "chance snow": "snow_light.png",
+      "snow": "snow_light.png"
+    };
+
+    function matchIcon(desc) {
+      desc = desc.toLowerCase();
+      for (const key in iconMap) {
+        if (desc.includes(key)) return `icons/${iconMap[key]}`;
+      }
+      return "icons/clear.png"; // fallback icon
+    }
+
+    async function loadForecast() {
+      try {
+        const point = await fetch('https://api.weather.gov/points/42.659,-71.355').then(r => r.json());
+        const forecastURL = point.properties.forecast;
+        const days = await fetch(forecastURL).then(r => r.json());
+        const periods = days.properties.periods.slice(0, 7);
+        const container = document.getElementById('forecast');
+        container.innerHTML = '';
+        periods.forEach(p => {
+          const icon = matchIcon(p.shortForecast);
+          container.innerHTML += `
+            <div class="day">
+              <h3>${p.name}</h3>
+              <img src="${icon}" alt="${p.shortForecast}">
+              <div class="desc">${p.shortForecast}</div>
+              <div class="temp">${p.temperature}°${p.temperatureUnit}</div>
+            </div>`;
+        });
+        document.getElementById('dateBar').textContent = new Date().toLocaleDateString('en-US');
+      } catch (e) {
+        document.getElementById('forecast').innerHTML = "<p style='color:white;'>Unable to load forecast.</p>";
+        console.error(e);
+      }
+    }
+
+    loadForecast();
+    setInterval(loadForecast, 1800000); // update every 30 minutes
+  </script>
+</body>
+</html>
