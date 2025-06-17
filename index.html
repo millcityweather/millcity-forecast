@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -34,6 +35,37 @@
   <div id="dateBar"></div>
 
   <script>
+    const iconMap = {
+      "sunny": "icons/sunny.png",
+      "mostly sunny": "icons/mostly_sunny.png",
+      "partly sunny": "icons/partly_sunny.png",
+      "mostly cloudy": "icons/mostly_cloudy.png",
+      "cloudy": "icons/cloudy.png",
+      "clear": "icons/clear.png",
+      "fog": "icons/fog.png",
+      "patchy fog": "icons/fog.png",
+      "chance rain showers": "icons/rain_light.png",
+      "rain showers": "icons/showers.png",
+      "showers and thunderstorms": "icons/thunderstorm.png",
+      "chance showers and thunderstorms": "icons/thunderstorm.png",
+      "thunderstorms": "icons/thunderstorm.png",
+      "t-storm": "icons/thunderstorm.png",
+      "snow": "icons/snow_light.png",
+      "flurries": "icons/flurries.png",
+      "chance snow showers": "icons/snow_light.png",
+      "rain and snow": "icons/rain_snow.png",
+      "mostly clear": "icons/clear.png",
+      "very hot": "icons/Sunny and Very Warm.png"
+    };
+
+    function matchIcon(description) {
+      const lower = description.toLowerCase();
+      for (const key in iconMap) {
+        if (lower.includes(key)) return iconMap[key];
+      }
+      return "icons/clear.png";
+    }
+
     async function loadForecast() {
       const point = await fetch('https://api.weather.gov/points/42.659,-71.355').then(r=>r.json());
       const days = await fetch(point.properties.forecast).then(r=>r.json());
@@ -41,17 +73,18 @@
       const container = document.getElementById('forecast');
       container.innerHTML = '';
       periods.forEach(p => {
-        const icon = p.shortForecast.toLowerCase().includes('night') ? 'YOUR_NIGHT_ICON_MAPPING.png' : 'YOUR_DAY_ICON_MAPPING.png';
+        const icon = matchIcon(p.shortForecast);
         container.innerHTML += `
           <div class="day">
             <h3>${p.name}</h3>
             <img src="${icon}" alt="${p.shortForecast}">
             <div class="desc">${p.shortForecast}</div>
-            <div class="temp">${p.temperature}°${p.temperatureUnit}</div>
+            <div class="temp">${p.temperature}&deg;${p.temperatureUnit}</div>
           </div>`;
       });
       document.getElementById('dateBar').textContent = new Date().toLocaleDateString('en-US');
     }
+
     loadForecast();
     setInterval(loadForecast,1800000);
   </script>
