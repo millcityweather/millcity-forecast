@@ -1,28 +1,39 @@
-const iconMap = {
-  "patchy fog": "fog.png",
-  "fog": "fog.png",
-  "chance rain showers": "rain_light.png",
-  "rain showers": "rain_light.png",
-  "showers": "rain_light.png",
-  "thunderstorms": "thunderstorm.png",
-  "showers and thunderstorms": "thunderstorm.png",
-  "chance showers and thunderstorms": "thunderstorm.png",
-  "isolated thunderstorms": "thunderstorm.png",
-  "sunny": "sunny.png",
-  "mostly sunny": "mostly_sunny.png",
-  "partly sunny": "partly_sunny.png",
-  "clear": "clear.png",
-  "mostly clear": "mostly_clear.png",
-  "mostly cloudy": "mostly_cloudy.png",
-  "cloudy": "cloudy.png",
-  "chance rain": "rain_light.png"
-};
-
-function matchIcon(desc) {
-  desc = desc.toLowerCase();
-  for (const key in iconMap) {
-    if (desc.includes(key)) return `icons/${iconMap[key]}`;
-  }
-  return "icons/clear.png"; // fallback icon
-}
-
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Mill City Weather 7‑Day Forecast</title>
+  <style>
+    @font-face {
+      font-family: 'HelveticaNeue93BlackExt';
+      src: url('Helvetica Neue LT Std 93 Black Extended.woff') format('woff');
+      font-weight: 900;
+      font-style: normal;
+    }
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: white;
+    }
+    #header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px;
+      background: #f0f0f0;
+    }
+    #header img {
+      height: 60px;
+    }
+    #forecast {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px;
+      background: linear-gradient(to right, #005c97, #363795);
+    }
+    .day {
+      flex: 1;
+      margin: 0 5px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      text-align: center;
