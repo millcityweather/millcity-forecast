@@ -1,0 +1,140 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mill City 7-Day Forecast</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/weather-icons/2.0.10/css/weather-icons.min.css">
+  <style>
+    body {
+      font-family: sans-serif;
+      background: #f8f8f8;
+      margin: 0;
+      color: #333;
+    }
+
+    h2 {
+      text-align: center;
+      padding: 20px 10px 0;
+    }
+
+    table {
+      width: 95%;
+      max-width: 1000px;
+      margin: 20px auto;
+      border-collapse: collapse;
+      background: #fff;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    thead {
+      background: #2670b8;
+      color: #fff;
+    }
+
+    th, td {
+      padding: 12px 10px;
+      text-align: center;
+    }
+
+    tbody tr:nth-child(even) {
+      background-color: #f1f5f9;
+    }
+
+    .wi {
+      font-size: 28px;
+      margin-right: 8px;
+    }
+
+    .icon-cell {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+  </style>
+</head>
+<body>
+
+<h2>Mill City 7-Day Forecast</h2>
+
+<table id="forecast-table">
+  <thead>
+    <tr>
+      <th>Day</th>
+      <th>Condition</th>
+      <th>High / Low</th>
+      <th>Wind</th>
+    </tr>
+  </thead>
+  <tbody id="forecast-body">
+    <tr><td colspan="4">Loading forecast...</td></tr>
+  </tbody>
+</table>
+
+<script>
+  const iconMap = {
+    "Sunny": "wi-day-sunny",
+    "Mostly Sunny": "wi-day-sunny-overcast",
+    "Partly Cloudy": "wi-day-cloudy",
+    "Mostly Cloudy": "wi-cloudy",
+    "Cloudy": "wi-cloudy",
+    "Rain": "wi-rain",
+    "Showers": "wi-showers",
+    "Rain Showers": "wi-showers",
+    "Thunderstorms": "wi-thunderstorm",
+    "T-Storms": "wi-thunderstorm",
+    "Fog": "wi-fog",
+    "Patchy Fog": "wi-day-fog",
+    "Clear": "wi-night-clear",
+    "Mostly Clear": "wi-night-alt-cloudy"
+  };
+
+  async function loadForecast() {
+    const url = "https://api.weather.gov/gridpoints/BOX/70,76/forecast";
+    try {
+      const res = await fetch(url);
+      const data = await res.json();
+      const periods = data.properties.periods;
+
+      const tbody = document.getElementById("forecast-body");
+      tbody.innerHTML = "";
+
+      for (let i = 0; i < 14; i += 2) {
+        const day = periods[i];
+        const night = periods[i + 1];
+        const name = day.name;
+        const forecast = day.shortForecast;
+        const wind = day.windSpeed + " " + day.windDirection;
+        const tempHigh = day.temperature + "°";
+        const tempLow = night ? night.temperature + "°" : "—";
+
+        // Match icon
+        let iconKey = Object.keys(iconMap).find(k => forecast.includes(k)) || "Cloudy";
+        let iconClass = iconMap[iconKey] || "wi-day-sunny";
+
+        const row = `
+          <tr>
+            <td>${name}</td>
+            <td class="icon-cell">
+              <i class="wi ${iconClass}"></i>${forecast}
+            </td>
+            <td>${tempHigh} / ${tempLow}</td>
+            <td>${wind}</td>
+          </tr>`;
+        tbody.innerHTML += row;
+      }
+    } catch (error) {
+      document.getElementById("forecast-body").innerHTML =
+        `<tr><td colspan="4">Error loading forecast.</td></tr>`;
+    }
+  }
+
+  loadForecast();
+</script>
+
+</body>
+</html>
