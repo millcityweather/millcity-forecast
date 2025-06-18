@@ -2,9 +2,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mill City 7-Day Forecast</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Mill City Extended Forecast</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/weather-icons/2.0.10/css/weather-icons.min.css">
   <style>
     body {
@@ -13,15 +13,13 @@
       margin: 0;
       color: #333;
     }
-
     h2 {
       text-align: center;
       padding: 20px 10px 0;
     }
-
     table {
       width: 95%;
-      max-width: 1000px;
+      max-width: 1100px;
       margin: 20px auto;
       border-collapse: collapse;
       background: #fff;
@@ -29,31 +27,31 @@
       border-radius: 10px;
       overflow: hidden;
     }
-
     thead {
       background: #2670b8;
       color: #fff;
     }
-
     th, td {
       padding: 12px 10px;
       text-align: center;
     }
-
     tbody tr:nth-child(even) {
       background-color: #f1f5f9;
     }
-
     .wi {
-      font-size: 28px;
-      margin-right: 8px;
+      font-size: 26px;
     }
-
     .icon-cell {
       display: flex;
       align-items: center;
       justify-content: center;
       gap: 6px;
+    }
+    @media (max-width: 768px) {
+      th, td {
+        font-size: 0.9em;
+        padding: 8px 6px;
+      }
     }
   </style>
 </head>
@@ -67,11 +65,14 @@
       <th>Day</th>
       <th>Condition</th>
       <th>High / Low</th>
+      <th>Rain</th>
       <th>Wind</th>
+      <th>Sunrise</th>
+      <th>Sunset</th>
     </tr>
   </thead>
   <tbody id="forecast-body">
-    <tr><td colspan="4">Loading forecast...</td></tr>
+    <tr><td colspan="7">Loading forecast...</td></tr>
   </tbody>
 </table>
 
@@ -84,7 +85,6 @@
     "Cloudy": "wi-cloudy",
     "Rain": "wi-rain",
     "Showers": "wi-showers",
-    "Rain Showers": "wi-showers",
     "Thunderstorms": "wi-thunderstorm",
     "T-Storms": "wi-thunderstorm",
     "Fog": "wi-fog",
@@ -99,37 +99,43 @@
       const res = await fetch(url);
       const data = await res.json();
       const periods = data.properties.periods;
-
       const tbody = document.getElementById("forecast-body");
       tbody.innerHTML = "";
 
       for (let i = 0; i < 14; i += 2) {
         const day = periods[i];
         const night = periods[i + 1];
-        const name = day.name;
+        const date = new Date(day.startTime);
+        const dateStr = date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+        const name = day.name === "Tonight" ? "Tonight" : date.toLocaleDateString(undefined, { weekday: 'long' });
         const forecast = day.shortForecast;
         const wind = day.windSpeed + " " + day.windDirection;
         const tempHigh = day.temperature + "°";
         const tempLow = night ? night.temperature + "°" : "—";
+        const rainChance = day.probabilityOfPrecipitation.value || 0;
+        const sunrise = "—"; // Placeholder
+        const sunset = "—";  // Placeholder
 
-        // Match icon
         let iconKey = Object.keys(iconMap).find(k => forecast.includes(k)) || "Cloudy";
         let iconClass = iconMap[iconKey] || "wi-day-sunny";
 
         const row = `
           <tr>
-            <td>${name}</td>
+            <td><strong>${name}</strong><br><small>${dateStr}</small></td>
             <td class="icon-cell">
-              <i class="wi ${iconClass}"></i>${forecast}
+              <i class="wi ${iconClass}"></i> ${forecast}
             </td>
             <td>${tempHigh} / ${tempLow}</td>
+            <td>💧 ${rainChance}%</td>
             <td>${wind}</td>
+            <td>${sunrise}</td>
+            <td>${sunset}</td>
           </tr>`;
         tbody.innerHTML += row;
       }
     } catch (error) {
       document.getElementById("forecast-body").innerHTML =
-        `<tr><td colspan="4">Error loading forecast.</td></tr>`;
+        `<tr><td colspan="7">Error loading forecast.</td></tr>`;
     }
   }
 
