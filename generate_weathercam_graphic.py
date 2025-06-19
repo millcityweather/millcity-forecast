@@ -1,6 +1,7 @@
 import requests
 from PIL import Image, ImageDraw, ImageFont
 from datetime import datetime
+from draw_centered_patch import draw_centered
 
 # Load the template
 template = Image.open("weathercam_template.png").convert("RGBA")
@@ -8,11 +9,7 @@ draw = ImageDraw.Draw(template)
 
 # Font setup
 font_path = "Helvetica Neue LT Std 83 Heavy Extended.otf"
-try:
-    font = ImageFont.truetype(font_path, 88)
-except OSError:
-    print("⚠️ Warning: Custom font not found. Falling back to default font.")
-    font = ImageFont.load_default()
+font = ImageFont.truetype(font_path, 88)
 
 # Get NWS data for Lowell, MA
 points_url = "https://api.weather.gov/points/42.6334,-71.3162"
@@ -46,12 +43,12 @@ def deg_to_cardinal(deg):
 wind_cardinal = deg_to_cardinal(wind_dir)
 wind_text = f"{wind_cardinal} {wind_speed}"
 
-# Draw text – (x, y) coordinates aligned per your template layout
-draw.text((865, 100), f"{temperature}°", font=font, fill="black")
-draw.text((865, 255), f"{pressure}", font=font, fill="black")
-draw.text((865, 410), f"{visibility} mi", font=font, fill="black")
-draw.text((865, 565), f"{dewpoint}", font=font, fill="black")
-draw.text((865, 720), f"{wind_text}", font=font, fill="black")
+# Draw centered text inside white boxes (x, y, width, height)
+draw_centered(draw, f"{temperature}°", font, box=(830, 95, 400, 120))
+draw_centered(draw, f"{pressure}", font, box=(830, 250, 400, 120))
+draw_centered(draw, f"{visibility} mi", font, box=(830, 405, 400, 120))
+draw_centered(draw, f"{dewpoint}", font, box=(830, 560, 400, 120))
+draw_centered(draw, f"{wind_text}", font, box=(830, 715, 400, 120))
 
 # Save the output
 template.save("weathercam.png")
