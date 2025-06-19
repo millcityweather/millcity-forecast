@@ -1,49 +1,60 @@
 import requests
 from PIL import Image, ImageDraw, ImageFont
-import datetime
+from datetime import datetime
 
-# ---- Load base image ----
-template_path = "weathercam_template.png"
-output_path = "weathercam.png"
-image = Image.open(template_path).convert("RGBA")
-draw = ImageDraw.Draw(image)
+# Load template
+template = Image.open("weathercam_template.png").convert("RGBA")
+draw = ImageDraw.Draw(template)
 
-# ---- Font config ----
-font_path = "Helvetica Neue LT Std 83 Heavy Extended.otf"
-font = ImageFont.truetype(font_path, 90)
+# Font setup
+font_path = "helvetica-neue-lt-std-83-heavy-extended_CRtS6.otf"
+font = ImageFont.truetype(font_path, 96)
 
-# ---- Convert helper ----
-def kelvin_to_f(k):
-    return round((k - 273.15) * 9 / 5 + 32) if k is not None else "—"
+# Get NWS data (Lowell, MA station)
+points_url = "https://api.weather.gov/points/42.6334,-71.3162"
+metadata = requests.get(points_url).json()
+station_url = metadata["properties"]["observationStations"]
 
-def meters_to_miles(m):
-    return round(m / 1609.344, 1) if m else "—"
+# Get the closest station's observations
+stations = requests.get(station_url).json()
+station_id = stations["features"][0]["properties"]["stationIdentifier"]
+obs_url = f"https://api.weather.gov/stations/{station_id}/observations/latest"
+obs = requests.get(obs_url).json()["properties"]
 
-def pa_to_inhg(pa):
-    return round(pa * 0.0002953, 2) if pa else "—"
+# Extract values
+temperature = round(obs["temperature"]["value"] * 9 / 5 + 32) if obs["temperature"] else "--"
+dewpoint = round(obs["dewpoint"]["value"] * 9 / 5 + 32) if obs["dewpoint"] else "--"
+pressure = round(obs["barometricPressure"]["value"] * 0.0002953, 2) if obs["barometricPressure"] else "--"
+visibility = round(obs["visibility"]["value"] / 1609.34) if obs["visibility"] else "--"
+wind_dir = obs["windDirection"]["value"]
+wind_speed = round(obs["windSpeed"]["value"] * 0.621371) if obs["windSpeed"] else "--"
 
-# ---- Fetch NWS data ----
-station = "KLWM"  # Lawrence Municipal Airport, closest to Lowell
-url = f"https://api.weather.gov/stations/{station}/observations/latest"
-headers = {"User-Agent": "millcityweather.com"}
-res = requests.get(url, headers=headers)
-data = res.json()["properties"]
+# Convert wind direction to cardinal
+def wind_direction(deg):
+    if deg is None:
+        return "--"
+    dirs = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW']
+    i = int((deg + 22.5) / 45) % 8
+    return dirs[i]
 
-# ---- Parse + convert values ----
-temp_f = kelvin_to_f(data["temperature"]["value"])
-dew_f = kelvin_to_f(data["dewpoint"]["value"])
-vis_miles = meters_to_miles(data["visibility"]["value"])
-pressure_in = pa_to_inhg(data["barometricPressure"]["value"])
-wind_spd = round(data["windSpeed"]["value"] * 0.621371) if data["windSpeed"]["value"] else "—"
-wind_dir = data["windDirection"]["value"] or "—"
-wind = f"{wind_dir} {wind_spd}"
+wind_cardinal = wind_direction(wind_dir)
 
-# ---- Draw text onto image (adjust positions as needed) ----
-draw.text((90, 320), f"{temp_f}°", font=font, fill="black")         # Temperature
-draw.text((590, 320), f"{pressure_in}", font=font, fill="black")    # Pressure
-draw.text((950, 320), f"{vis_miles} mi", font=font, fill="black")   # Visibility
-draw.text((1320, 320), f"{dew_f}°", font=font, fill="black")        # Dewpoint
-draw.text((1700, 320), str(wind), font=font, fill="black")          # Winds
+# Define positions
+positions = {
+    "temperature": (620, 80),
+    "pressure": (620, 230),
+    "visibility": (620, 380),
+    "dewpoint": (620, 530),
+    "winds": (620, 680)
+}
 
-# ---- Save output ----
-image.save(output_path)
+# Draw text
+draw.text(positions["temperature"], f"{temperature}°", font=font, fill="black")
+draw.text(positions["pressure"], f"{pressure}", font=font, fill="black")
+draw.text(positions["visibility"], f"{visibility} mi", font=font, fill="black")
+draw.text(positions["dewpoint"], f"{dewpoint}", font=font, fill="black")
+draw.text(positions["winds"], f"{wind_cardinal} {wind_speed}", font=font, fill="black")
+
+# Save result
+template.save("weathercam.png")
+
