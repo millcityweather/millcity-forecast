@@ -7,7 +7,7 @@ template = Image.open("weathercam_template.png").convert("RGBA")
 draw = ImageDraw.Draw(template)
 
 # Font setup
-font_path = "helvetica-neue-lt-std-83-heavy-extended_CRtS.otf"
+font_path = "Helvetica Neue LT Std 83 Heavy Extended.otf"
 font = ImageFont.truetype(font_path, 96)
 
 # Get NWS data (Lowell, MA station)
