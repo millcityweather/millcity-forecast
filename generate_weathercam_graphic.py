@@ -8,7 +8,7 @@ template = Image.open("weathercam_template.png").convert("RGBA")
 draw = ImageDraw.Draw(template)
 
 # Font setup
-font_path = "Helvetica Neue LT Std 83 Heavy Extended.otf"
+font_path = "helvetica_neue_lt_std_83.otf"
 font = ImageFont.truetype(font_path, 88)
 
 # Get NWS data for Lowell, MA
