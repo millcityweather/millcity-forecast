@@ -8,6 +8,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3
@@ -27,6 +28,11 @@ jobs:
         run: |
           git config user.name "github-actions"
           git config user.email "actions@github.com"
-          git add weathercam.png
-          git commit -m "Auto-update weathercam graphic"
-          git push
+          if [ -f weathercam.png ]; then
+            git add weathercam.png
+            git commit -m "Update weathercam graphic"
+            git push
+          else
+            echo "❌ weathercam.png not found!"
+            exit 1
+          fi
