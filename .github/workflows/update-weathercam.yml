@@ -1,13 +1,36 @@
+name: Update Weathercam Graphic
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - name: Install dependencies
+        run: |
+          pip install requests Pillow
+
+      - name: Run weathercam script
+        run: python generate_weathercam_graphic.py
+
       - name: Commit & push updated image
         run: |
           git config user.name "github-actions"
           git config user.email "actions@github.com"
-
-          # List files to confirm output is present
+          
+          # List files to confirm output
           echo "Files in directory:"
           ls -la
 
-          # Only try to commit if image exists
           if [ -f weathercam.png ]; then
             git add weathercam.png
             git commit -m "Update weathercam graphic"
@@ -16,4 +39,3 @@
             echo "❌ weathercam.png not found!"
             exit 1
           fi
-
