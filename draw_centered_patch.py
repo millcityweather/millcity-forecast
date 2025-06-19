@@ -1,28 +1,12 @@
-# Function to center text inside a rectangle
-def draw_centered_text(text, box_x, box_y, box_width, box_height, font):
-    text_width, text_height = draw.textsize(text, font=font)
-    x = box_x + (box_width - text_width) // 2
-    y = box_y + (box_height - text_height) // 2
-    draw.text((x, y), text, font=font, fill="black")
+from PIL import ImageDraw
 
-# White box coordinates (x, y, width, height)
-boxes = [
-    (845, 95, 450, 110),   # Temperature
-    (845, 250, 450, 110),  # Pressure
-    (845, 405, 450, 110),  # Visibility
-    (845, 560, 450, 110),  # Dewpoint
-    (845, 715, 450, 110),  # Winds
-]
-
-# Text values
-values = [
-    f"{temperature}°",
-    f"{pressure}",
-    f"{visibility} mi",
-    f"{dewpoint}",
-    f"{wind_text}"
-]
-
-# Draw them
-for (x, y, w, h), text in zip(boxes, values):
-    draw_centered_text(text, x, y, w, h, font)
+def draw_centered(draw: ImageDraw.Draw, text: str, font, box: tuple, fill="black"):
+    """
+    Draws text centered in the given box.
+    box = (x, y, width, height)
+    """
+    x, y, w, h = box
+    text_w, text_h = draw.textsize(text, font=font)
+    text_x = x + (w - text_w) / 2
+    text_y = y + (h - text_h) / 2
+    draw.text((text_x, text_y), text, font=font, fill=fill)
