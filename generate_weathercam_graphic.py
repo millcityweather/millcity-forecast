@@ -7,8 +7,12 @@ template = Image.open("weathercam_template.png").convert("RGBA")
 draw = ImageDraw.Draw(template)
 
 # Font setup
-font_path = "helvetica-neue-lt-std-83-heavy-extended.otf"
-font = ImageFont.truetype(font_path, 88)
+font_path = "Helvetica Neue LT Std 83 Heavy Extended.otf"
+try:
+    font = ImageFont.truetype(font_path, 88)
+except OSError:
+    print("⚠️ Warning: Custom font not found. Falling back to default font.")
+    font = ImageFont.load_default()
 
 # Get NWS data for Lowell, MA
 points_url = "https://api.weather.gov/points/42.6334,-71.3162"
