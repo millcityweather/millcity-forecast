@@ -6,7 +6,7 @@ from PIL import Image, ImageDraw, ImageFont
 # Load template and font
 template = Image.open("template.png").convert("RGBA")
 draw = ImageDraw.Draw(template)
-font = ImageFont.truetype("fonts/HelveticaNeueLTStd.otf", 108)
+font = ImageFont.truetype("Helvetica Neue LT Std 83 Heavy Extended.otf", 108)
 yellow = (255, 215, 0)
 
 # Get sunrise/sunset times
