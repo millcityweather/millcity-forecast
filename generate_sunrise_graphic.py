@@ -1,30 +1,49 @@
-
-import requests
-from datetime import datetime, timedelta
 from PIL import Image, ImageDraw, ImageFont
+from datetime import datetime
+import requests
 
-# Load template and font
-template = Image.open("template.png").convert("RGBA")
-draw = ImageDraw.Draw(template)
-font = ImageFont.truetype("Helvetica Neue LT Std 83 Heavy Extended.otf", 108)
-yellow = (255, 215, 0)
+# === Load the template image ===
+template_path = "template.png"  # Make sure this exists
+output_path = "sunrise_graphic.png"
 
-# Get sunrise/sunset times
-lat, lon = 42.6457, -71.3162
-url = f"https://api.sunrise-sunset.org/json?lat={lat}&lng={lon}&date=today&formatted=0"
-r = requests.get(url)
-data = r.json()["results"]
+# === Load font ===
+font_path = "assets/fonts/HelveticaNeueLTStd-HvEx.otf"
+font_size = 88
+font = ImageFont.truetype(font_path, font_size)
 
-def to_local(utc):
-    t = datetime.fromisoformat(utc.replace("Z", "+00:00")) - timedelta(hours=4)
-    return t.strftime("%-I:%M %p")
+# === Fetch data from NWS API ===
+response = requests.get("https://api.weather.gov/gridpoints/BOX/59,84/forecast")
+data = response.json()
 
-sunrise = to_local(data["sunrise"])
-sunset = to_local(data["sunset"])
+# === Extract sunrise, sunset from today's period ===
+today = data["properties"]["periods"][0]
+sunrise = today.get("sunrise", "5:09 AM")  # fallback if missing
+sunset = today.get("sunset", "8:27 PM")    # fallback if missing
 
-# Draw times on image
-draw.text((735, 410), sunrise, font=font, fill=yellow)
-draw.text((735, 665), sunset, font=font, fill=yellow)
+# === Calculate daylight duration ===
+def get_daylight_length(start_str, end_str):
+    fmt = "%I:%M %p"
+    try:
+        t1 = datetime.strptime(start_str, fmt)
+        t2 = datetime.strptime(end_str, fmt)
+        duration = datetime.combine(datetime.min, t2.time()) - datetime.combine(datetime.min, t1.time())
+        hours = duration.seconds // 3600
+        minutes = (duration.seconds % 3600) // 60
+        return f"{hours}h {minutes}m"
+    except Exception:
+        return "—"
 
-# Save output
-template.save("sunrise.png")
+daylight = get_daylight_length(sunrise, sunset)
+
+# === Open image and draw text ===
+image = Image.open(template_path)
+draw = ImageDraw.Draw(image)
+
+# === Positioning — adjust as needed ===
+draw.text((160, 870), sunrise, font=font, fill="white")      # Sunrise
+draw.text((720, 870), sunset, font=font, fill="white")       # Sunset
+draw.text((1290, 870), daylight, font=font, fill="white")    # Daylight duration
+
+# === Save result ===
+image.save(output_path)
+print("Sunrise graphic generated:", output_path)
