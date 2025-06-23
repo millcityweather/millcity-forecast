@@ -1,26 +1,34 @@
 from PIL import Image, ImageDraw, ImageFont
 from datetime import datetime
 import requests
+import dropbox
 
-# === File paths ===
-template_path = "template.png"
-output_path = "sunrise_graphic.png"
-font_path = "assets/fonts/Helvetica Neue LT Std 83 Heavy Extended.otf"
-font_size = 88
+# === Dropbox Settings ===
+DROPBOX_ACCESS_TOKEN = "YOUR_DROPBOX_ACCESS_TOKEN"
+DROPBOX_DEST_PATH = "/sunrise_graphic.png"
 
-# === Load font ===
-font = ImageFont.truetype(font_path, font_size)
+# === Image & Font Settings ===
+TEMPLATE_PATH = "template.png"
+OUTPUT_PATH = "sunrise_graphic.png"
+FONT_PATH = "assets/fonts/Helvetica Neue LT Std 83 Heavy Extended.otf"
+FONT_SIZE = 88
 
-# === Open image and draw ===
-image = Image.open(template_path)
-draw = ImageDraw.Draw(image)
+# === Get Sunrise/Sunset Times (Live API) ===
+def get_sunrise_sunset():
+    url = "https://api.sunrise-sunset.org/json?lat=42.6334&lng=-71.3162&formatted=0"
+    try:
+        response = requests.get(url)
+        data = response.json()["results"]
+        sunrise_utc = datetime.fromisoformat(data["sunrise"])
+        sunset_utc = datetime.fromisoformat(data["sunset"])
+        local_timezone = datetime.now().astimezone().tzinfo
+        sunrise = sunrise_utc.astimezone(local_timezone).strftime("%-I:%M %p")
+        sunset = sunset_utc.astimezone(local_timezone).strftime("%-I:%M %p")
+        return sunrise, sunset
+    except:
+        return "—", "—"
 
-# === Get sunrise/sunset data ===
-# Using static fallback times — you can replace this with live data later
-sunrise_time = "5:09 AM"
-sunset_time = "8:27 PM"
-
-# === Calculate daylight duration ===
+# === Daylight Duration ===
 def get_daylight_length(start_str, end_str):
     fmt = "%I:%M %p"
     try:
@@ -30,17 +38,38 @@ def get_daylight_length(start_str, end_str):
         hours = duration.seconds // 3600
         minutes = (duration.seconds % 3600) // 60
         return f"{hours}h {minutes}m"
-    except Exception:
+    except:
         return "—"
 
-daylight = get_daylight_length(sunrise_time, sunset_time)
+# === Upload to Dropbox ===
+def upload_to_dropbox(local_path, dropbox_path):
+    dbx = dropbox.Dropbox(DROPBOX_ACCESS_TOKEN)
+    with open(local_path, "rb") as f:
+        dbx.files_upload(f.read(), dropbox_path, mode=dropbox.files.WriteMode("overwrite"))
+    print("✅ Uploaded to Dropbox:", dropbox_path)
 
-# === Draw the text (adjust these positions to match your template)
-draw.text((160, 870), sunrise_time, font=font, fill="white")
-draw.text((720, 870), sunset_time, font=font, fill="white")
-draw.text((1290, 870), daylight, font=font, fill="white")
+# === Main Process ===
+def main():
+    sunrise, sunset = get_sunrise_sunset()
+    daylight = get_daylight_length(sunrise, sunset)
 
-# === Save the output ===
-image.save(output_path)
-print("✅ Sunrise graphic saved as:", output_path)
+    font = ImageFont.truetype(FONT_PATH, FONT_SIZE)
+    image = Image.open(TEMPLATE_PATH)
+    draw = ImageDraw.Draw(image)
+
+    # Draw sunrise, sunset, daylight (adjust positions if needed)
+    draw.text((160, 870), sunrise, font=font, fill="white")
+    draw.text((720, 870), sunset, font=font, fill="white")
+    draw.text((1290, 870), daylight, font=font, fill="white")
+
+    # Save image
+    image.save(OUTPUT_PATH)
+    print("✅ Image saved:", OUTPUT_PATH)
+
+    # Upload to Dropbox
+    upload_to_dropbox(OUTPUT_PATH, DROPBOX_DEST_PATH)
+
+if __name__ == "__main__":
+    main()
+
 
