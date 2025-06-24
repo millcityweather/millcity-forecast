@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Sunrise & Sunset</title>
+  <title>Sunrise</title>
   <style>
     @font-face {
       font-family: 'HelveticaNeueLTStdHvEx';
@@ -19,39 +19,41 @@
       text-align: center;
     }
 
-    #sun-info {
+    #sunrise {
       padding: 20px;
-      line-height: 1.2;
     }
   </style>
 </head>
 <body>
-  <div id="sun-info">Loading…</div>
+  <div id="sunrise">Loading…</div>
 
   <script>
-    async function getSunriseSunset() {
+    async function getSunrise() {
       const lat = 42.6334;
       const lng = -71.3162;
       try {
         const proxyURL = 'https://corsproxy.io/?';
-        const targetURL = `https://api.sunrise-sunset.org/json?lat=${lat}&lng=${lng}&formatted=0`;
-        const response = await fetch(proxyURL + encodeURIComponent(targetURL));
+        const apiURL = `https://api.sunrise-sunset.org/json?lat=${lat}&lng=${lng}&formatted=0`;
+        const response = await fetch(proxyURL + encodeURIComponent(apiURL));
         const data = await response.json();
 
         const sunriseUTC = new Date(data.results.sunrise);
-        const sunsetUTC = new Date(data.results.sunset);
+        const options = {
+          hour: 'numeric',
+          minute: '2-digit',
+          hour12: true,
+          timeZone: 'America/New_York'
+        };
+        let sunrise = sunriseUTC.toLocaleTimeString('en-US', options).toLowerCase(); // e.g. "5:06 am"
 
-        const sunrise = sunriseUTC.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', timeZone: 'America/New_York' });
-        const sunset = sunsetUTC.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', timeZone: 'America/New_York' });
-
-        document.getElementById('sun-info').innerHTML = `🌅 ${sunrise}<br>🌇 ${sunset}`;
+        document.getElementById('sunrise').textContent = sunrise;
       } catch (err) {
-        document.getElementById('sun-info').textContent = 'Error loading data';
+        document.getElementById('sunrise').textContent = 'error';
         console.error('Fetch failed:', err);
       }
     }
 
-    getSunriseSunset();
+    getSunrise();
   </script>
 </body>
 </html>
