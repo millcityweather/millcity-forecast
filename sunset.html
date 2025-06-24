@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Sunset</title>
+  <style>
+    @font-face {
+      font-family: 'HelveticaNeueLTStdHvEx';
+      src: url('HelveticaNeueLTStd-HvEx.otf') format('opentype');
+    }
+
+    body {
+      background: transparent;
+      margin: 0;
+      padding: 0;
+      font-family: 'HelveticaNeueLTStdHvEx', sans-serif;
+      color: #d4a100;
+      font-size: 88px;
+      text-align: center;
+    }
+
+    #sunset {
+      padding: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div id="sunset">Loading…</div>
+
+  <script>
+    async function getSunset() {
+      const lat = 42.6334;
+      const lng = -71.3162;
+      try {
+        const proxyURL = 'https://corsproxy.io/?';
+        const apiURL = `https://api.sunrise-sunset.org/json?lat=${lat}&lng=${lng}&formatted=0`;
+        const response = await fetch(proxyURL + encodeURIComponent(apiURL));
+        const data = await response.json();
+
+        const sunsetUTC = new Date(data.results.sunset);
+        const options = {
+          hour: 'numeric',
+          minute: '2-digit',
+          hour12: true,
+          timeZone: 'America/New_York'
+        };
+        let sunset = sunsetUTC.toLocaleTimeString('en-US', options).toLowerCase();
+
+        document.getElementById('sunset').textContent = sunset;
+      } catch (err) {
+        document.getElementById('sunset').textContent = 'error';
+        console.error('Fetch failed:', err);
+      }
+    }
+
+    getSunset();
+  </script>
+</body>
+</html>
