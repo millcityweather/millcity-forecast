@@ -2,14 +2,14 @@ name: Generate Sunrise Graphic
 
 on:
   schedule:
-    - cron: '10 10 * * *'  # UTC 10:10 = 6:10 AM ET
-  workflow_dispatch:       # Allow manual run
+    - cron: '10 10 * * *'  # 6:10 AM ET
+  workflow_dispatch:       # Manual trigger
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Repo
+      - name: Checkout repo
         uses: actions/checkout@v3
 
       - name: Set up Python
@@ -18,8 +18,7 @@ jobs:
           python-version: '3.11'
 
       - name: Install dependencies
-        run: |
-          pip install pillow dropbox requests
+        run: pip install pillow dropbox requests pytz
 
       - name: Generate Sunrise Graphic
         env:
